@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rutas de Estaciones</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            background: #1a1a1a;
+        }
+
+        .topbar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .topbar select {
+            height: 38px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            padding: 0 10px;
+            min-width: 140px;
+        }
+
+        .bottombar {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            gap: 12px;
+        }
+
+        .bottombar .btn {
+            height: 50px;
+            padding: 0 25px;
+            border-radius: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .badge-info {
+            position: absolute;
+            top: 85px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 900;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: none;
+            min-width: 280px;
+            font-size: 14px;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 800;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #64748b;
+            border: 1px solid #e1e8ef;
+            display: none;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="topbar">
+        <select id="localidad-select">
+            <option value="">Localidad</option>
+        </select>
+        <select id="marca-select" disabled>
+            <option value="">Marca</option>
+        </select>
+        <select id="destino-select" disabled>
+            <option value="">Destino</option>
+        </select>
+    </div>
+
+    <div class="bottombar">
+        <button id="calcular-ruta" class="btn btn-primary"><i data-lucide="map"></i> Calcular Ruta</button>
+        <button id="limpiar-seleccion" class="btn btn-secondary" style="background: #475569;"><i
+                data-lucide="rotate-ccw"></i> Limpiar</button>
+        <a href="/" class="btn btn-light"><i data-lucide="log-out"></i> Volver</a>
+    </div>
+
+    <div id="map"></div>
+    <div id="badge-info" class="badge-info"></div>
+    <div id="hint" class="hint"><i data-lucide="crosshair" style="width:14px"></i> Haz clic en España para fijar tu
+        origen</div>
+
+    <script>
+        lucide.createIcons();
+        let map, estacionesMarkers = [], polyline, destinoSeleccionado, startPoint, startMarker, filtroMarca = '';
+
+        const estacionesData = {{ estaciones | tojson | safe }};
+        const estacionesPorLocalidad = {};
+        const marcasPorLocalidad = {};
+
+        estacionesData.forEach(e => {
+            if (!estacionesPorLocalidad[e.localidad]) estacionesPorLocalidad[e.localidad] = [];
+            if (!marcasPorLocalidad[e.localidad]) marcasPorLocalidad[e.localidad] = new Set();
+            estacionesPorLocalidad[e.localidad].push(e);
+            if (e.marca) marcasPorLocalidad[e.localidad].add(e.marca);
+        });
+
+        const localidadSelect = document.getElementById('localidad-select');
+        const marcaSelect = document.getElementById('marca-select');
+        const destinoSelect = document.getElementById('destino-select');
+        const badgeInfo = document.getElementById('badge-info');
+
+        Object.keys(estacionesPorLocalidad).sort().forEach(loc => {
+            const opt = document.createElement('option'); opt.value = loc; opt.textContent = loc;
+            localidadSelect.appendChild(opt);
+        });
+
+        map = L.map('map', {
+            maxBounds: [[34, -13], [45, 7]],
+            minZoom: 6,
+            maxZoom: 18,
+            maxBoundsViscosity: 1.0
+        }).setView([40.4168, -3.7038], 6);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        // Silueta con Margen Ajustado (Más ajustada pero con pequeño buffer)
+        const spainSilhouette = [
+            [44.2, -9.8], [44.2, -7.0], [43.9, -4.0], [43.7, -1.5], [43.0, 1.5],
+            [42.8, 4.0], [42.0, 4.0], [41.0, 2.5], [39.5, 1.0], [38.0, 0.5],
+            [36.8, -1.5], [36.2, -2.8], [36.2, -5.0], [35.6, -6.2], [36.4, -7.2],
+            [36.4, -9.2], [38.0, -10.2], [41.0, -10.0], [42.5, -10.2], [44.2, -9.8]
+        ];
+
+        const worldCoords = [[90, -180], [90, 180], [-90, 180], [-90, -180], [90, -180]];
+
+        const mask = L.polygon([worldCoords, spainSilhouette], {
+            color: 'rgba(59, 130, 246, 0.6)', // Azul neón transparente
+            fillColor: '#000',
+            fillOpacity: 0.72,
+            weight: 5,
+            dashArray: '8, 12',
+            interactive: false
+        }).addTo(map);
+
+        const createIcon = (color) => L.icon({
+            iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+        });
+
+        function clearMarkers() {
+            estacionesMarkers.forEach(m => map.removeLayer(m.marker));
+            estacionesMarkers = [];
+        }
+
+        function renderLocalidad() {
+            clearMarkers();
+            const loc = localidadSelect.value;
+            if (!loc) return;
+            const filtradas = estacionesPorLocalidad[loc].filter(e => !filtroMarca || e.marca === filtroMarca);
+            filtradas.forEach(est => {
+                const marker = L.marker([est.latitud, est.longitud], { icon: createIcon('blue') }).addTo(map);
+                marker.bindPopup(`<strong>${est.municipio}</strong><br>${est.marca || 'Sin marca'}`);
+                estacionesMarkers.push({ marker, data: est });
+                marker.on('click', () => {
+                    destinoSelect.value = est.node_id;
+                    setDestino(est.node_id);
+                });
+            });
+            if (filtradas.length > 0) map.fitBounds(L.latLngBounds(filtradas.map(e => [e.latitud, e.longitud])), { padding: [50, 50] });
+        }
+
+        function setDestino(id) {
+            destinoSeleccionado = estacionesMarkers.find(e => e.data.node_id == id);
+            estacionesMarkers.forEach(m => m.marker.setIcon(createIcon(m.data.node_id == id ? 'violet' : 'blue')));
+        }
+
+        localidadSelect.addEventListener('change', () => {
+            filtroMarca = ''; rellenarSelects(); renderLocalidad();
+            document.getElementById('hint').style.display = localidadSelect.value ? 'block' : 'none';
+        });
+
+        marcaSelect.addEventListener('change', () => {
+            filtroMarca = marcaSelect.value; rellenarSelects(true); renderLocalidad();
+        });
+
+        destinoSelect.addEventListener('change', () => setDestino(destinoSelect.value));
+
+        function rellenarSelects(keepDestino = false) {
+            const loc = localidadSelect.value;
+            if (!loc) { marcaSelect.disabled = destinoSelect.disabled = true; return; }
+            marcaSelect.disabled = false; destinoSelect.disabled = false;
+            if (!keepDestino) {
+                marcaSelect.innerHTML = '<option value="">Marca (Todas)</option>';
+                Array.from(marcasPorLocalidad[loc]).sort().forEach(m => {
+                    const opt = document.createElement('option'); opt.value = opt.textContent = m;
+                    marcaSelect.appendChild(opt);
+                });
+            }
+            destinoSelect.innerHTML = '<option value="">-- Elige Destino --</option>';
+            estacionesPorLocalidad[loc].filter(e => !filtroMarca || e.marca === filtroMarca).forEach(e => {
+                const opt = document.createElement('option'); opt.value = e.node_id;
+                opt.textContent = `${e.marca ? e.marca + ' · ' : ''}${e.municipio}`;
+                destinoSelect.appendChild(opt);
+            });
+        }
+
+        function isPointInSpain(lat, lng) {
+            let inside = false;
+            for (let i = 0, j = spainSilhouette.length - 1; i < spainSilhouette.length; j = i++) {
+                let xi = spainSilhouette[i][0], yi = spainSilhouette[i][1];
+                let xj = spainSilhouette[j][0], yj = spainSilhouette[j][1];
+                let intersect = ((yi > lng) != (yj > lng)) && (lat < (xj - xi) * (lng - yi) / (yj - yi) + xi);
+                if (intersect) inside = !inside;
+            }
+            return inside;
+        }
+
+        map.on('click', (e) => {
+            if (!localidadSelect.value) return;
+            if (!isPointInSpain(e.latlng.lat, e.latlng.lng)) return;
+            startPoint = e.latlng;
+            if (startMarker) map.removeLayer(startMarker);
+            startMarker = L.marker(startPoint, { icon: createIcon('green'), draggable: true }).addTo(map).bindPopup('Tu ubicación').openPopup();
+            startMarker.on('dragend', (ev) => {
+                if (!isPointInSpain(ev.target.getLatLng().lat, ev.target.getLatLng().lng)) {
+                    startMarker.setLatLng(startPoint);
+                    return;
+                }
+                startPoint = ev.target.getLatLng();
+            });
+        });
+
+        async function calcularRuta() {
+            if (!destinoSeleccionado || !startPoint) { alert('Elige destino y marca origen dentro de España.'); return; }
+            if (polyline) map.removeLayer(polyline);
+            badgeInfo.style.display = 'block';
+            badgeInfo.innerHTML = '<div class="text-center p-2"><div class="spinner-border spinner-border-sm text-primary"></div> Calculando...</div>';
+            try {
+                const res = await fetch('/calcular_ruta', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        localidad: localidadSelect.value,
+                        destino: destinoSeleccionado.data.node_id,
+                        start_lat: startPoint.lat, start_lng: startPoint.lng
+                    })
+                });
+                const r = await res.json();
+                if (r.error) { badgeInfo.innerHTML = `<div class="text-danger">${r.error}</div>`; return; }
+                polyline = L.polyline(r.path.map(p => [p.latitud, p.longitud]), { color: '#3b82f6', weight: 6 }).addTo(map);
+                map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
+                badgeInfo.innerHTML = `
+                    <div class="fw-bold border-bottom pb-1 mb-2">Resumen de Ruta</div>
+                    <div class="d-flex justify-content-between"><span>Distancia:</span> <b>${r.distancia_km} km</b></div>
+                    <div class="d-flex justify-content-between"><span>Tiempo:</span> <b>${Math.round(r.tiempo_estimado_minutos)} min</b></div>
+                    <div class="d-flex justify-content-between border-top mt-2 pt-1"><span>Consumo:</span> <b>${r.combustible_estimado_litros} L</b></div>
+                `;
+            } catch (e) { badgeInfo.innerHTML = 'Error al conectar'; }
+        }
+
+        document.getElementById('calcular-ruta').onclick = calcularRuta;
+        document.getElementById('limpiar-seleccion').onclick = () => location.reload();
+    </script>
+</body>
+
+</html>

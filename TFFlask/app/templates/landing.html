@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EZGas - Encuentra la Mejor Ruta a Gasolineras</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Archivo CSS Personalizado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing-styles.css') }}">
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Poppins:wght@700;800&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome (Opcional, manteniendo compatibilidad si se desea, pero usaremos Lucide) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+    <header class="hero-gradient text-white">
+        <div class="scanning-line"></div>
+        <nav class="navbar navbar-expand-lg navbar-dark fixed-top bg-transparent">
+            <div class="container">
+                <a class="navbar-brand fw-bold fs-3 d-flex align-items-center" href="#"
+                    style="font-family: 'Poppins', sans-serif;">
+                    <i data-lucide="fuel" class="me-2 text-warning"></i>EZGas
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                    <ul class="navbar-nav align-items-lg-center gap-3">
+                        <li class="nav-item"><a class="nav-link fs-6" href="#beneficios">Beneficios</a></li>
+                        <li class="nav-item"><a class="nav-link fs-6" href="#como-funciona">Cómo funciona</a></li>
+                        <li class="nav-item"><a class="nav-link fs-6" href="#caracteristicas">Características</a></li>
+                        <li class="nav-item">
+                            <a class="btn btn-light text-primary fw-semibold px-4 py-2 shadow-sm d-inline-flex align-items-center"
+                                href="{{ url_for('mostrar_ruta') }}">
+                                <i data-lucide="map-pinned" class="me-2"></i>Calcular Ruta
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="container py-lg-7 py-5 mt-5">
+            <div class="row align-items-center justify-content-between py-5 g-5">
+                <div class="col-lg-6">
+                    <h1 class="display-3 fw-extrabold mb-4 animated-card"
+                        style="font-family: 'Poppins', sans-serif; line-height: 1.1; letter-spacing: -1.2px;">
+                        Encuentra tu gasolinera con <span class="text-shimmer">EZGas</span>
+                    </h1>
+                    <p class="lead fs-4 mb-4 opacity-90">
+                        Calcula rutas óptimas por carretera usando algoritmos de grafos. Filtra por marca, clickea el
+                        mapa y encuentra la estación perfecta. Todo gratis, sin APIs de pago.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a class="btn btn-warning btn-lg text-dark fw-bold px-5 py-3 shadow d-inline-flex align-items-center"
+                            href="{{ url_for('mostrar_ruta') }}">
+                            <i data-lucide="navigation" class="me-2 icon-pulse"></i>Empezar Ahora
+                        </a>
+                        <a class="btn btn-outline-light btn-lg px-5 py-3 d-inline-flex align-items-center"
+                            href="#como-funciona">
+                            <i data-lucide="play-circle" class="me-2"></i>Ver Demo
+                        </a>
+                    </div>
+                    <div class="mt-5 d-flex flex-wrap gap-4 text-white">
+                        <div>
+                            <h3 class="fw-bold mb-0">100%</h3>
+                            <p class="small opacity-75 mb-0">Gratis</p>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-0">Real</h3>
+                            <p class="small opacity-75 mb-0">Rutas por Carretera</p>
+                        </div>
+                        <div>
+                            <h3 class="fw-bold mb-0">Open</h3>
+                            <p class="small opacity-75 mb-0">Source & Gratis</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="glass-card p-5 text-white shadow-lg" style="border-radius: 24px;">
+                        <div class="text-center mb-4">
+                            <i data-lucide="route" class="text-warning mb-3 icon-float"
+                                style="width: 64px; height: 64px;"></i>
+                            <h5 class="fw-bold fs-3">¿Por qué elegir EZGas?</h5>
+                        </div>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-4 d-flex align-items-start">
+                                <i data-lucide="check-circle-2" class="text-warning me-3 mt-1" style="width: 20px;"></i>
+                                <span class="fs-5">Algoritmos de grafos para rutas óptimas</span>
+                            </li>
+                            <li class="mb-4 d-flex align-items-start">
+                                <i data-lucide="check-circle-2" class="text-warning me-3 mt-1" style="width: 20px;"></i>
+                                <span class="fs-5">OSRM: Rutas reales por carretera</span>
+                            </li>
+                            <li class="mb-4 d-flex align-items-start">
+                                <i data-lucide="check-circle-2" class="text-warning me-3 mt-1" style="width: 20px;"></i>
+                                <span class="fs-5">Filtra por marca de gasolinera favorita</span>
+                            </li>
+                            <li class="mb-4 d-flex align-items-start">
+                                <i data-lucide="check-circle-2" class="text-warning me-3 mt-1" style="width: 20px;"></i>
+                                <span class="fs-5">Click en mapa para ubicación personalizada</span>
+                            </li>
+                            <li class="d-flex align-items-start">
+                                <i data-lucide="check-circle-2" class="text-warning me-3 mt-1" style="width: 20px;"></i>
+                                <span class="fs-5">100% gratuito - Sin costos ocultos</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container py-5">
+        <section id="beneficios" class="mb-5 py-5">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold text-primary mb-3" style="font-family: 'Poppins', sans-serif;">
+                    <i data-lucide="sparkles" class="text-warning me-2"></i>Beneficios Clave
+                </h2>
+                <p class="lead text-muted">Todo lo que necesitas para encontrar gasolineras de forma eficiente</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 hover-lift">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex p-4 mb-4">
+                                <i data-lucide="map" style="width: 48px; height: 48px;" class="text-primary"></i>
+                            </div>
+                            <h5 class="fw-bold mb-3">Rutas Reales por Carretera</h5>
+                            <p class="text-muted">OSRM calcula rutas siguiendo carreteras reales, no líneas rectas. Sin
+                                costos ni APIs de pago.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 hover-lift">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex p-4 mb-4">
+                                <i data-lucide="filter" style="width: 48px; height: 48px;" class="text-success"></i>
+                            </div>
+                            <h5 class="fw-bold mb-3">Filtrado por Marca</h5>
+                            <p class="text-muted">Encuentra tu marca favorita: Repsol, Cepsa, BP y más. Filtra
+                                fácilmente desde el mapa.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100 shadow-sm border-0 hover-lift">
+                        <div class="card-body text-center p-4">
+                            <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex p-4 mb-4">
+                                <i data-lucide="mouse-pointer-2" style="width: 48px; height: 48px;"
+                                    class="text-warning"></i>
+                            </div>
+                            <h5 class="fw-bold mb-3">Click y Listo</h5>
+                            <p class="text-muted">Haz click en el mapa para establecer tu ubicación. Interfaz simple e
+                                intuitiva.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="como-funciona" class="mb-5 py-5 bg-light rounded-4">
+            <div class="container py-5">
+                <div class="text-center mb-5">
+                    <h2 class="display-5 fw-bold text-primary mb-3" style="font-family: 'Poppins', sans-serif;">
+                        <i data-lucide="settings" class="text-primary me-2"></i>Cómo Funciona
+                    </h2>
+                    <p class="lead text-muted">Tres simples pasos para encontrar tu ruta</p>
+                </div>
+                <div class="row g-4 align-items-center">
+                    <div class="col-md-4">
+                        <div class="glass-card p-4 h-100 text-center shadow">
+                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                                style="width: 60px; height: 60px;">
+                                <span class="fs-3 fw-bold">1</span>
+                            </div>
+                            <h5 class="fw-bold mb-3 text-primary">Elige Localidad</h5>
+                            <p class="mb-0 text-dark">Selecciona la ciudad o zona donde quieres buscar gasolineras.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="glass-card p-4 h-100 text-center shadow">
+                            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                                style="width: 60px; height: 60px;">
+                                <span class="fs-3 fw-bold">2</span>
+                            </div>
+                            <h5 class="fw-bold mb-3 text-success">Click en el Mapa</h5>
+                            <p class="mb-0 text-dark">Haz click donde estés o quieras partir. Aparecerá un marcador
+                                verde.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="glass-card p-4 h-100 text-center shadow">
+                            <div class="bg-warning text-dark rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                                style="width: 60px; height: 60px;">
+                                <span class="fs-3 fw-bold">3</span>
+                            </div>
+                            <h5 class="fw-bold mb-3 text-warning">Calcula Ruta</h5>
+                            <p class="mb-0 text-dark">Selecciona destino y obtén la ruta real por carretera al instante.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="caracteristicas" class="mb-5 py-5">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold text-primary mb-3" style="font-family: 'Poppins', sans-serif;">
+                    Características Premium
+                </h2>
+                <p class="lead text-muted">Todo gratis, sin límites</p>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="text-center py-3">
+                        <i data-lucide="infinity" style="width: 48px; height: 48px;" class="text-primary mb-3"></i>
+                        <h6 class="fw-bold fs-5">Ilimitado</h6>
+                        <p class="text-muted small">Sin límites de uso ni restricciones</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="text-center py-3">
+                        <i data-lucide="map-pin" style="width: 48px; height: 48px;" class="text-success mb-3"></i>
+                        <h6 class="fw-bold fs-5">OpenStreetMap</h6>
+                        <p class="text-muted small">Mapas de código abierto</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="text-center py-3">
+                        <i data-lucide="smartphone" style="width: 48px; height: 48px;" class="text-warning mb-3"></i>
+                        <h6 class="fw-bold fs-5">Responsive</h6>
+                        <p class="text-muted small">Funciona en todos los dispositivos</p>
+                    </div>
+                </div>
+                <div class="col-md-6 col-lg-3">
+                    <div class="text-center py-3">
+                        <i data-lucide="zap" style="width: 48px; height: 48px;" class="text-danger mb-3 icon-pulse"></i>
+                        <h6 class="fw-bold fs-5">Rápido</h6>
+                        <p class="text-muted small">Resultados instantáneos</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-5 py-5">
+            <div class="card shadow-lg border-0 bg-primary text-white" style="border-radius: 24px; overflow: hidden;">
+                <div class="card-body p-5">
+                    <div class="row align-items-center g-4">
+                        <div class="col-lg-8">
+                            <h3 class="fw-bold mb-3 fs-2">¿Listo para encontrar tu gasolinera?</h3>
+                            <p class="fs-5 mb-0 opacity-90">Empieza ahora y calcula tu ruta en segundos. Sin registros,
+                                sin pagos, sin complicaciones.</p>
+                        </div>
+                        <div class="col-lg-4 text-lg-end">
+                            <a class="btn btn-warning btn-lg text-dark fw-bold px-5 py-3 shadow d-inline-flex align-items-center"
+                                href="{{ url_for('mostrar_ruta') }}">
+                                <i data-lucide="rocket" class="me-2 icon-pulse"></i>Comenzar Gratis
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-dark text-light py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <h4 class="fw-bold mb-3 d-flex align-items-center" style="font-family: 'Poppins', sans-serif;">
+                        <i data-lucide="fuel" class="me-2 text-warning"></i>EZGas
+                    </h4>
+                    <p class="text-white-50">La forma más fácil y rápida de encontrar gasolineras y calcular rutas en
+                        España. 100% gratis.</p>
+                </div>
+                <div class="col-lg-4">
+                    <h6 class="fw-bold mb-3">Enlaces Rápidos</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#beneficios" class="text-white-50 text-decoration-none"><i
+                                    class="fas fa-chevron-right me-2"></i>Beneficios</a></li>
+                        <li class="mb-2"><a href="#como-funciona" class="text-white-50 text-decoration-none"><i
+                                    class="fas fa-chevron-right me-2"></i>Cómo Funciona</a></li>
+                        <li class="mb-2"><a href="{{ url_for('mostrar_ruta') }}"
+                                class="text-white-50 text-decoration-none"><i
+                                    class="fas fa-chevron-right me-2"></i>Calcular Ruta</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-4">
+                    <h6 class="fw-bold mb-3">Tecnología</h6>
+                    <p class="text-white-50 small">
+                        <i data-lucide="check" class="text-success me-2" style="width: 16px;"></i>OpenStreetMap<br>
+                        <i data-lucide="check" class="text-success me-2" style="width: 16px;"></i>OSRM Routing<br>
+                        <i data-lucide="check" class="text-success me-2" style="width: 16px;"></i>Leaflet Maps<br>
+                        <i data-lucide="check" class="text-success me-2" style="width: 16px;"></i>Flask Backend
+                    </p>
+                </div>
+            </div>
+            <hr class="my-4 border-secondary">
+            <div class="text-center text-white-50">
+                <p class="mb-0">&copy; 2026 EZGas. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Inicializar Lucide Icons
+        lucide.createIcons();
+
+        // Cambiar el color de la barra de navegación al hacer scroll
+        window.onscroll = function () {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('bg-dark');
+                navbar.classList.remove('bg-transparent');
+            } else {
+                navbar.classList.remove('bg-dark');
+                navbar.classList.add('bg-transparent');
+            }
+        };
+
+        // Smooth scroll
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
