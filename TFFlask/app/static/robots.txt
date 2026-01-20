@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://ezgas.vercel.app/sitemap.xml
+Sitemap: https://ez_gas.vercel.app/sitemap.xml
