@@ -14,8 +14,8 @@ CSV_PATH = os.path.join(BASE_DIR, 'spanish_gas_stations.csv')
 
 # Ajuste de carpetas para Netlify ( templates y static están en ../app/ )
 app = Flask(__name__, 
-            template_folder=os.path.join(BASE_DIR, '../app/templates'),
-            static_folder=os.path.join(BASE_DIR, '../app/static'))
+            template_folder='../app/templates',
+            static_folder='../app/static')
 
 # Diccionario para almacenar los subgrafos de cada localidad
 subgrafos = {}
@@ -358,5 +358,7 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 # Handler para Netlify (serverless-wsgi)
+from serverless_wsgi import handle_request
+
 def handler(event, context):
     return handle_request(app, event, context)
