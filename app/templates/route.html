@@ -146,16 +146,25 @@
             }
 
             .badge-info {
-                top: 180px;
+                top: auto;
+                bottom: 120px;
+                /* Más arriba para que no choque con los botones altos de móvil */
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 2000;
+                /* Asegurar que esté por encima de todo */
                 width: 90%;
-                font-size: 13px;
-                padding: 10px;
+                min-width: 90%;
+                font-size: 14px;
+                padding: 15px;
+                border: 2px solid #3b82f6;
+                background: white;
+                /* Más sólido en móvil para leer mejor */
             }
 
             .hint {
-                bottom: 150px;
-                width: 80%;
-                text-align: center;
+                display: none !important;
+                /* Quitar hint en móvil para limpiar espacio */
             }
         }
     </style>
@@ -374,7 +383,6 @@
 
                 let resumenHTML = `<div class="fw-bold border-bottom pb-1 mb-2">Resumen de Ruta</div>`;
                 if (r.distancia_km) resumenHTML += `<div class="d-flex justify-content-between"><span>Distancia:</span> <b>${r.distancia_km} km</b></div>`;
-                if (r.tiempo_estimado_minutos) resumenHTML += `<div class="d-flex justify-content-between"><span>Tiempo:</span> <b>${Math.round(r.tiempo_estimado_minutos)} min</b></div>`;
                 if (r.combustible_estimado_litros) resumenHTML += `<div class="d-flex justify-content-between border-top mt-2 pt-1"><span>Consumo:</span> <b>${r.combustible_estimado_litros} L</b></div>`;
 
                 badgeInfo.innerHTML = resumenHTML;
