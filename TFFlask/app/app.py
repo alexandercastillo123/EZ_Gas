@@ -1,3 +1,9 @@
+from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
+import networkx as nx
+import numpy as np
+from geopy.distance import geodesic
+import csv
+import requests
 import math
 import os
 
@@ -138,6 +144,14 @@ def calcular_combustible_estimado(distancia_km, consumo_litro_100km=7):
     """Calcula el combustible estimado necesario."""
     litros_necesarios = (distancia_km * consumo_litro_100km) / 100
     return round(litros_necesarios, 2)
+
+@app.route('/robots.txt')
+def static_from_root_robots():
+    return send_from_directory(app.static_folder, request.path[1:])
+
+@app.route('/sitemap.xml')
+def static_from_root_sitemap():
+    return send_from_directory(app.static_folder, request.path[1:])
 
 @app.route('/')
 def landing():
