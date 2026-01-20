@@ -12,10 +12,19 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV_PATH = os.path.join(BASE_DIR, 'spanish_gas_stations.csv')
 
-# Ajuste de carpetas para Netlify ( templates y static están en ../app/ )
+# Detección de carpetas de recursos (Flexibilidad para Local y Netlify)
+def get_resource_path(relative_path):
+    # Intentar en la raíz de la función (Bundle de Netlify)
+    bundle_path = os.path.join(BASE_DIR, relative_path)
+    if os.path.exists(bundle_path):
+        return bundle_path
+    # Intentar en el directorio superior (Desarrollo Local)
+    local_path = os.path.abspath(os.path.join(BASE_DIR, '..', relative_path))
+    return local_path
+
 app = Flask(__name__, 
-            template_folder='../app/templates',
-            static_folder='../app/static')
+            template_folder=get_resource_path('app/templates'),
+            static_folder=get_resource_path('app/static'))
 
 # Diccionario para almacenar los subgrafos de cada localidad
 subgrafos = {}
