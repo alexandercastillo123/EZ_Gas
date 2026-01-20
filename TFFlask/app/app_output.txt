@@ -10,3 +10,10 @@ Press CTRL+C to quit
  * Restarting with stat
  * Debugger is active!
  * Debugger PIN: 435-919-065
+ * Detected change in 'C:\\Users\\ALEXANDER\\Desktop\\comple fer\\TFFlask\\app\\app.py', reloading
+ * Restarting with stat
+Traceback (most recent call last):
+  File "C:\Users\ALEXANDER\Desktop\comple fer\TFFlask\app\app.py", line 8, in <module>
+    app = Flask(__name__)
+          ^^^^^
+NameError: name 'Flask' is not defined

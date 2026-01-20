@@ -1,10 +1,9 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
-import networkx as nx
-import numpy as np
-from geopy.distance import geodesic
-import csv
-import requests
 import math
+import os
+
+# Configuración de rutas para compatibilidad con Vercel
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CSV_PATH = os.path.join(BASE_DIR, 'spanish_gas_stations.csv')
 
 app = Flask(__name__)
 
@@ -15,8 +14,12 @@ def cargar_datos():
     """Carga los datos del CSV y genera subgrafos por localidad."""
     gas_stations = {}
 
-    # Leer el archivo CSV
-    with open('spanish_gas_stations.csv', mode='r', encoding='utf-8', errors='ignore') as f:
+    # Leer el archivo CSV usando la ruta absoluta calculada
+    if not os.path.exists(CSV_PATH):
+        print(f"ERROR: No se encontró el archivo CSV en {CSV_PATH}")
+        return
+
+    with open(CSV_PATH, mode='r', encoding='utf-8', errors='ignore') as f:
         reader = csv.DictReader(f)
         for row in reader:
             latitud = float(row.get('latitud'))
