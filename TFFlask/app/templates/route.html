@@ -131,11 +131,13 @@
     <div id="hint" class="hint"><i data-lucide="crosshair" style="width:14px"></i> Haz clic en España para fijar tu
         origen</div>
 
+    <script id="estaciones-data" type="application/json">{{ estaciones | tojson | safe }}</script>
+
     <script>
         lucide.createIcons();
         let map, estacionesMarkers = [], polyline, destinoSeleccionado, startPoint, startMarker, filtroMarca = '';
 
-        const estacionesData = {{ estaciones | tojson | safe }};
+        const estacionesData = JSON.parse(document.getElementById('estaciones-data').textContent);
         const estacionesPorLocalidad = {};
         const marcasPorLocalidad = {};
 
@@ -261,13 +263,20 @@
         }
 
         map.on('click', (e) => {
-            if (!localidadSelect.value) return;
-            if (!isPointInSpain(e.latlng.lat, e.latlng.lng)) return;
+            if (!localidadSelect.value) {
+                alert('Por favor, selecciona una localidad primero.');
+                return;
+            }
+            if (!isPointInSpain(e.latlng.lat, e.latlng.lng)) {
+                alert('Por favor, selecciona un punto dentro de España peninsular.');
+                return;
+            }
             startPoint = e.latlng;
             if (startMarker) map.removeLayer(startMarker);
             startMarker = L.marker(startPoint, { icon: createIcon('green'), draggable: true }).addTo(map).bindPopup('Tu ubicación').openPopup();
             startMarker.on('dragend', (ev) => {
                 if (!isPointInSpain(ev.target.getLatLng().lat, ev.target.getLatLng().lng)) {
+                    alert('Ubicación fuera de los límites permitidos.');
                     startMarker.setLatLng(startPoint);
                     return;
                 }
@@ -276,7 +285,10 @@
         });
 
         async function calcularRuta() {
-            if (!destinoSeleccionado || !startPoint) { alert('Elige destino y marca origen dentro de España.'); return; }
+            if (!destinoSeleccionado || !startPoint) {
+                alert('Por favor, selecciona un destino y marca un origen en el mapa.');
+                return;
+            }
             if (polyline) map.removeLayer(polyline);
             badgeInfo.style.display = 'block';
             badgeInfo.innerHTML = '<div class="text-center p-2"><div class="spinner-border spinner-border-sm text-primary"></div> Calculando...</div>';
@@ -287,20 +299,34 @@
                     body: JSON.stringify({
                         localidad: localidadSelect.value,
                         destino: destinoSeleccionado.data.node_id,
-                        start_lat: startPoint.lat, start_lng: startPoint.lng
+                        start_lat: startPoint.lat,
+                        start_lng: startPoint.lng
                     })
                 });
                 const r = await res.json();
-                if (r.error) { badgeInfo.innerHTML = `<div class="text-danger">${r.error}</div>`; return; }
+                if (r.error) {
+                    badgeInfo.innerHTML = `<div class="text-danger"><strong>Error:</strong> ${r.error}</div>`;
+                    return;
+                }
+
+                if (!r.path || r.path.length === 0) {
+                    badgeInfo.innerHTML = `<div class="text-danger">No se pudo generar el camino.</div>`;
+                    return;
+                }
+
                 polyline = L.polyline(r.path.map(p => [p.latitud, p.longitud]), { color: '#3b82f6', weight: 6 }).addTo(map);
                 map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
-                badgeInfo.innerHTML = `
-                    <div class="fw-bold border-bottom pb-1 mb-2">Resumen de Ruta</div>
-                    <div class="d-flex justify-content-between"><span>Distancia:</span> <b>${r.distancia_km} km</b></div>
-                    <div class="d-flex justify-content-between"><span>Tiempo:</span> <b>${Math.round(r.tiempo_estimado_minutos)} min</b></div>
-                    <div class="d-flex justify-content-between border-top mt-2 pt-1"><span>Consumo:</span> <b>${r.combustible_estimado_litros} L</b></div>
-                `;
-            } catch (e) { badgeInfo.innerHTML = 'Error al conectar'; }
+
+                let resumenHTML = `<div class="fw-bold border-bottom pb-1 mb-2">Resumen de Ruta</div>`;
+                if (r.distancia_km) resumenHTML += `<div class="d-flex justify-content-between"><span>Distancia:</span> <b>${r.distancia_km} km</b></div>`;
+                if (r.tiempo_estimado_minutos) resumenHTML += `<div class="d-flex justify-content-between"><span>Tiempo:</span> <b>${Math.round(r.tiempo_estimado_minutos)} min</b></div>`;
+                if (r.combustible_estimado_litros) resumenHTML += `<div class="d-flex justify-content-between border-top mt-2 pt-1"><span>Consumo:</span> <b>${r.combustible_estimado_litros} L</b></div>`;
+
+                badgeInfo.innerHTML = resumenHTML;
+            } catch (e) {
+                console.error(e);
+                badgeInfo.innerHTML = '<div class="text-danger">Error de conexión con el servidor.</div>';
+            }
         }
 
         document.getElementById('calcular-ruta').onclick = calcularRuta;
