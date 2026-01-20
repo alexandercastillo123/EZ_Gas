@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
-from serverless_wsgi import handle_request
 import networkx as nx
 import numpy as np
 from geopy.distance import geodesic
@@ -12,15 +11,11 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV_PATH = os.path.join(BASE_DIR, 'spanish_gas_stations.csv')
 
-# Detección de carpetas de recursos (Flexibilidad para Local y Netlify)
+# Detección de carpetas de recursos para Vercel
 def get_resource_path(relative_path):
-    # Intentar en la raíz de la función (Bundle de Netlify)
-    bundle_path = os.path.join(BASE_DIR, relative_path)
-    if os.path.exists(bundle_path):
-        return bundle_path
-    # Intentar en el directorio superior (Desarrollo Local)
-    local_path = os.path.abspath(os.path.join(BASE_DIR, '..', relative_path))
-    return local_path
+    # La estructura en Vercel tendrá api/index.py y app/templates en la raíz
+    # Por lo tanto, si estamos en api/index.py, subir un nivel llega a la raíz
+    return os.path.abspath(os.path.join(BASE_DIR, '..', relative_path))
 
 app = Flask(__name__, 
             template_folder=get_resource_path('app/templates'),
@@ -366,8 +361,5 @@ cargar_datos()
 if __name__ == '__main__':
     app.run(debug=True)
 
-# Handler para Netlify (serverless-wsgi)
-from serverless_wsgi import handle_request
-
-def handler(event, context):
-    return handle_request(app, event, context)
+# Handler para Vercel (opcional, Vercel busca 'app' por defecto)
+# app = app
