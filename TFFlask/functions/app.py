@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
+import serverless_wsgi
 import networkx as nx
 import numpy as np
 from geopy.distance import geodesic
@@ -7,11 +8,14 @@ import requests
 import math
 import os
 
-# Configuración de rutas para compatibilidad con Vercel
+# Configuración de rutas para compatibilidad con Netlify/Vercel
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CSV_PATH = os.path.join(BASE_DIR, 'spanish_gas_stations.csv')
 
-app = Flask(__name__)
+# Ajuste de carpetas para Netlify ( templates y static están en ../app/ )
+app = Flask(__name__, 
+            template_folder=os.path.join(BASE_DIR, '../app/templates'),
+            static_folder=os.path.join(BASE_DIR, '../app/static'))
 
 # Diccionario para almacenar los subgrafos de cada localidad
 subgrafos = {}
@@ -352,3 +356,7 @@ cargar_datos()
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+# Handler para Netlify (serverless-wsgi)
+def handler(event, context):
+    return serverless_wsgi.handle_request(app, event, context)
