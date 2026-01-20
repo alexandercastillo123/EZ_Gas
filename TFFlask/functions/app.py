@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, send_from_directory
-import serverless_wsgi
+from serverless_wsgi import handle_request
 import networkx as nx
 import numpy as np
 from geopy.distance import geodesic
@@ -359,4 +359,4 @@ if __name__ == '__main__':
 
 # Handler para Netlify (serverless-wsgi)
 def handler(event, context):
-    return serverless_wsgi.handle_request(app, event, context)
+    return handle_request(app, event, context)

@@ -1,7 +1,7 @@
 [build]
   command = "pip install -r requirements.txt"
-  functions = "functions"
   publish = "app/static"
+  functions = "functions"
 
 [[redirects]]
   from = "/*"
